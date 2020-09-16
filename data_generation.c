@@ -341,14 +341,14 @@ int main(){
 
         for(j=0;j<input_size;j++){
             input[j]=rand()%100 +1;  //generating random inputs between (1,100)
-            input_set[i][j]=input[j];
+            input_set[i][j]=input[j]; //set of inputs is stored 
         }
 
         mips(input,ptr);
 
         int k;
         for(k=0;k<input_size;k++){
-            output_set[i][k]=*(ptr+k);
+            output_set[i][k]=*(ptr+k);  //set of output array is stored 
         }
        
     
