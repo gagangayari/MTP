@@ -114,7 +114,8 @@ def flip(sample,index,prob):
 def custom_mutation(chromosome):
     ##Indexes
     # chromosome.key=np.array(chromosome.key)
-    const1=np.hstack((0,range(12,43)))
+    ## the bits for the first constant is as [ k1,k12,k13.....k42]
+    const1=np.hstack((0,range(12,43)))  
     const2=np.hstack((1,range(43,74)))
     const3=np.hstack((5,range(74,105)))
     const4=np.hstack((6,range(105,136)))
@@ -380,9 +381,8 @@ def fitness(samples,if_child=False):
     if(flag):
         index=[i for _ in range(len(samples))]
         return index
+    
     ##sort the fit_values
-    
-    
     samples_sorted=sorted(samples,key=lambda x:x.fitness,reverse=True)
     
     return np.array(samples_sorted)
@@ -470,6 +470,8 @@ start=time.process_time()
 print(sga(population,visited))
 print(time.process_time()-start)
 
+
+
 #%% Exact key
 
 ss="1,1,0,1, 0,0,1,1, 0,1,1,0, 0,1,0,1, 0,0,1,0, 0,0,1,0, 0,1,1,0, 1,1,0,1"
@@ -480,34 +482,7 @@ act_key=list(map(int,ss.split(",")))
 a_sample=sample()
 a_sample.key=act_key
 #%%
-# def binaryToDecimal(binary): 
-      
-
-aa=np.hstack((act_key[0],act_key[12:43]))
-
-def bool2int(x):
-    y = 0
-    for i,j in enumerate(x):
-        y += j<<i
-    return y    
-
-y=bool2int(aa[::-1])
-print(y)
 
 
 
-
-
-
-
-# %%
-a_dict=np.load('test_dict.npy',allow_pickle=True).item()
-
-for i in range(10000):
-    if(i%5==0):
-        a_dict[i]='k'
-        np.save('test_dict.npy',a_dict)
-
-    
-    
     
