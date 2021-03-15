@@ -1,34 +1,12 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
-#include<F:/pdf e-reading/Mtech/project/MTP/CHStone_v1.11_150204/adpcm - Copy/ga.h>
+#include "ga.h"
 #include "ga_func.c"
 
 
 #define key_size 167
 #define init_pop_size 400
-
-
-
-
-
-
-
-
-
-    
-
-/* ##################### Selection of Parents ##########################*/
-
-
-
-/* Initialise all elements of an array to -1 */
-void initializer(int arr[],int n){
-    for(int i=0;i<n;i++){
-        arr[i]=-1;
-    }
-
-}
 
 
 
