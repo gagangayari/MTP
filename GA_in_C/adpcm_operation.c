@@ -927,12 +927,13 @@ void run_main_adpcm (int key[])
         srand(n_data);
         for(int j=0;j<SIZE;j++){
             test_data[j]=rand()%100; 
-            if(j<SIZE-1){
+            
+            /*if(j<SIZE-1){
                 fprintf(fptr2,"%d,",test_data[j]);
             }
             else{
                 fprintf(fptr2,"%d\n",test_data[j]);
-            }
+            }*/
       
         }
     
@@ -949,12 +950,12 @@ void run_main_adpcm (int key[])
         for (i = 0; i < IN_END; i++){
             //write the output in a csv file
 
-            if(i<IN_END-1){
+            /*if(i<IN_END-1){
                 fprintf(fptr1,"%d,",result[i]);
             }
             else{
                 fprintf(fptr1,"%d\n",result[i]);
-            }
+            }*/
 
 	        if (result[i] != test_result[i]){
 	            main_result += 1;
