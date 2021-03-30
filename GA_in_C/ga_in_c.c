@@ -10,17 +10,48 @@ int main(){
 
     srand(time(NULL));
     clock_t t;
-    struct timespec t1,t2;
-    t1.tv_sec=0;
-    t1.tv_nsec=999999999;
+
+    //threads
+    pthread_t t1,t2,t3,t4;
+    struct args *arg1=(struct args*)malloc(sizeof(struct args));
+    struct args *arg2=(struct args*)malloc(sizeof(struct args));
+    arg1->start=0;
+    arg1->end=200;
+
+    arg2->start=201;
+    arg2->end=400;
+    read_act_output(); //reads the actual output in actual_output
+    
 
     //Initialise population
     struct chrom *pop=(struct chrom*) malloc(init_pop * (sizeof(struct chrom)));
     struct chrom *childs=(struct chrom*) malloc(max_offsprings * (sizeof(struct chrom)));
     struct chrom *combined=(struct chrom*) malloc((init_pop+max_offsprings) * (sizeof(struct chrom)));
+    
     struct Node *hash_map=NULL ;
     init_chrom(init_pop,pop);
+
+    int key[32]={1,1,0,1, 0,0,1,1, 0,1,1,0, 0,1,0,1, 0,0,1,0, 0,0,1,0,  0,1,1,0,  1,1,0,1};
+    
+    for(int i=0;i<key_size;i++){
+        pop[2].key[i]=key[i];
+    }
     hash_map=fitness(pop,init_pop,hash_map);
+    
+
+    
+
+    arg1->node=hash_map;
+    arg2->node=hash_map;
+    arg1->sample=pop;
+    arg2->sample=pop;
+    pthread_create(&t1,NULL,&fitness_parallel,(void*) arg1);
+    pthread_create(&t2,NULL,fitness_parallel,(void*) arg2);
+    pthread_join(t1,NULL);
+    pthread_join(t2,NULL);
+
+
+
     // disp_chrom_data(pop,init_pop);
 
     if(found_flag==1){
@@ -30,7 +61,6 @@ int main(){
     
     FILE *file=fopen("avg_values.csv","w");
 
-    read_act_output(); //reads the actual output in actual_output
 
     
     int mut_count=0;
@@ -85,6 +115,8 @@ int main(){
         }
         printf("Itereation : %d . Average error : %lf\n",i,average_error[i]);
 
+        
+        
         //Mutation using probabilities.Parents with less error will have more childs
         mutate_prob(pop,max_offsprings,count);
         int y=0,j=0,a,x=0;
@@ -109,12 +141,11 @@ int main(){
             }
         }
 
-        /*for( int j=0;j<max_offsprings;j+=2){
+        
+        
+        /*for( int j=0;j<max_offsp    pthread_join(t1,NULL);
+    pthread_join(t2,NULL);
 
-            parents=selection(pop,max_offsprings,parents);
-
-            uniform_crossover(&pop[parents.first],&pop[parents.second],&childs[j],&childs[j+1]);
-            
             n1=bin2int(childs[j].key,key_size); //converting binary key to integer
             n2=bin2int(childs[j+1].key,key_size); 
 
@@ -129,10 +160,7 @@ int main(){
                 n2=bin2int(childs[j+1].key,key_size);
                 
             }
-
-            mutation(&pop[parents.first],&childs[j]);
-            mutation(&pop[parents.second],&childs[j+1]);
-
+pthread tutorial c
             n1=bin2int(childs[j].key,key_size); 
             n2=bin2int(childs[j+1].key,key_size);
 
@@ -155,6 +183,13 @@ int main(){
 
         }
         */
+
+    pthread_create(&t3,NULL, fitness_parallel,(void *)arg1);
+    pthread_create(&t3,NULL, fitness_parallel,(void *)arg2);
+
+    pthread_join(t4,NULL);
+    pthread_join(t4,NULL);
+
         hash_map=fitness(childs,max_offsprings,hash_map);
         if(found_flag==1){
             printf(("Found exact key "));
@@ -172,6 +207,8 @@ int main(){
 
         t=clock()-t;
         printf("Time taken for iteration : %lf\n",((double) t)/CLOCKS_PER_SEC);
+    
+    
     } 
         
     
@@ -179,22 +216,7 @@ int main(){
 
     printf("Elements in hashmap : %d\n",count_nodes(hash_map));
     
-   /* int key[32]={1,1,0,1, 0,0,1,1, 0,1,1,0, 0,1,0,1, 0,0,1,0, 0,0,1,0,  0,1,1,0,  1,1,0,1};
-    
-    for(int i=0;i<key_size;i++){
-        pop[1].key[i]=key[i];
-    }
-    // mutation(&pop[1],&childs[0]);
-    hash_map=fitness(pop,init_pop,hash_map);
-    bsort_samples(pop,init_pop);
-    if(found_flag){
-        printf("Found \n");
-        exit(0);
-    }
-    // disp_chrom_key(&pop[1],1);
-    disp_chrom_data(pop,init_pop);
-
-    */
+   
     fclose(file);
    free(pop);
    free(childs);
