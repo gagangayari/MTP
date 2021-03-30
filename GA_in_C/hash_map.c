@@ -1,183 +1,159 @@
-
-#include<limits.h>
+#include<stdio.h>
+#include<stdlib.h>
 #include"ga.h"
-#include <stdio.h>
-#include <stdlib.h>
-#define bool int
 
-struct Node {
-  int key;
-  struct Node *left;
-  struct Node *right;
-  int height;
+ 
+// An AVL tree node
+struct Node
+{
+    unsigned int key;
+    struct Node *left;
+    struct Node *right;
+    int height;
 };
-
-int max(int a, int b);
-
-// Calculate height
-int height(struct Node *N) {
-  if (N == NULL)
-    return 0;
-  return N->height;
+ 
+// A utility function to get maximum of two integers
+unsigned int max(unsigned int a,unsigned int b);
+ 
+// A utility function to get the height of the tree
+int height(struct Node *N)
+{
+    if (N == NULL)
+        return 0;
+    return N->height;
 }
-
-int max(int a, int b) {
-  return (a > b) ? a : b;
+ 
+// A utility function to get maximum of two integers
+unsigned int max(unsigned int a,unsigned int b)
+{
+    return (a > b)? a : b;
 }
-
-// Create a node
-struct Node *newNode(int key) {
-  struct Node *node = (struct Node *)
-    malloc(sizeof(struct Node));
-  node->key = key;
-  node->left = NULL;
-  node->right = NULL;
-  node->height = 1;
-  return (node);
+ 
+/* Helper function that allocates a new node with the given key and
+    NULL left and right pointers. */
+struct Node* newNode(unsigned int key)
+{
+    struct Node* node = (struct Node*)
+                        malloc(sizeof(struct Node));
+    node->key   = key;
+    node->left   = NULL;
+    node->right  = NULL;
+    node->height = 1;  // new node is initially added at leaf
+    return(node);
 }
-
-// Right rotate
-struct Node *rightRotate(struct Node *y) {
-  struct Node *x = y->left;
-  struct Node *T2 = x->right;
-
-  x->right = y;
-  y->left = T2;
-
-  y->height = max(height(y->left), height(y->right)) + 1;
-  x->height = max(height(x->left), height(x->right)) + 1;
-
-  return x;
+ 
+// A utility function to right rotate subtree rooted with y
+// See the diagram given above.
+struct Node *rightRotate(struct Node *y)
+{
+    struct Node *x = y->left;
+    struct Node *T2 = x->right;
+ 
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+ 
+    // Update heights
+    y->height = max(height(y->left), height(y->right))+1;
+    x->height = max(height(x->left), height(x->right))+1;
+ 
+    // Return new root
+    return x;
 }
-
-// Left rotate
-struct Node *leftRotate(struct Node *x) {
-  struct Node *y = x->right;
-  struct Node *T2 = y->left;
-
-  y->left = x;
-  x->right = T2;
-
-  x->height = max(height(x->left), height(x->right)) + 1;
-  y->height = max(height(y->left), height(y->right)) + 1;
-
-  return y;
+ 
+// A utility function to left rotate subtree rooted with x
+// See the diagram given above.
+struct Node *leftRotate(struct Node *x)
+{
+    struct Node *y = x->right;
+    struct Node *T2 = y->left;
+ 
+    // Perform rotation
+    y->left = x;
+    x->right = T2;
+ 
+    //  Update heights
+    x->height = max(height(x->left), height(x->right))+1;
+    y->height = max(height(y->left), height(y->right))+1;
+ 
+    // Return new root
+    return y;
 }
-
-// Get the balance factor
-int getBalance(struct Node *N) {
-  if (N == NULL)
-    return 0;
-  return height(N->left) - height(N->right);
+ 
+// Get Balance factor of node N
+int getBalance(struct Node *N)
+{
+    if (N == NULL)
+        return 0;
+    return height(N->left) - height(N->right);
 }
+ 
+// Recursive function to insert a key in the subtree rooted
+// with node and returns the new root of the subtree.
+struct Node* insert(struct Node* node, int key)
+{
+    /* 1.  Perform the normal BST insertion */
+    if (node == NULL)
+        return(newNode(key));
+ 
+    if (key < node->key)
+        node->left  = insert(node->left, key);
+    else if (key > node->key)
+        node->right = insert(node->right, key);
+    else // Equal keys are not allowed in BST
+        /*{if(key%2 ==0){
+            printf("Even \n");
 
-// Insert node
-struct Node *insertNode(struct Node *node, int key) {
-  // Find the correct position to insertNode the node and insertNode it
-  if (node == NULL)
-    return (newNode(key));
+        }
+        else{
+            printf("Odd \n");
 
-  if (key < node->key)
-    node->left = insertNode(node->left, key);
-  else if (key > node->key)
-    node->right = insertNode(node->right, key);
-  else
-    return node;
-
-  // Update the balance factor of each node and
-  // Balance the tree
-  node->height = 1 + max(height(node->left),
-               height(node->right));
-
-  int balance = getBalance(node);
-  if (balance > 1 && key < node->left->key)
-    return rightRotate(node);
-
-  if (balance < -1 && key > node->right->key)
-    return leftRotate(node);
-
-  if (balance > 1 && key > node->left->key) {
-    node->left = leftRotate(node->left);
-    return rightRotate(node);
-  }
-
-  if (balance < -1 && key < node->right->key) {
-    node->right = rightRotate(node->right);
-    return leftRotate(node);
-  }
-
-  return node;
-}
-
-struct Node *minValueNode(struct Node *node) {
-  struct Node *current = node;
-
-  while (current->left != NULL)
-    current = current->left;
-
-  return current;
-}
-
-// Delete a nodes
-struct Node *deleteNode(struct Node *root, int key) {
-  // Find the node and delete it
-  if (root == NULL)
-    return root;
-
-  if (key < root->key)
-    root->left = deleteNode(root->left, key);
-
-  else if (key > root->key)
-    root->right = deleteNode(root->right, key);
-
-  else {
-    if ((root->left == NULL) || (root->right == NULL)) {
-      struct Node *temp = root->left ? root->left : root->right;
-
-      if (temp == NULL) {
-        temp = root;
-        root = NULL;
-      } else
-        *root = *temp;
-      free(temp);
-    } else {
-      struct Node *temp = minValueNode(root->right);
-
-      root->key = temp->key;
-
-      root->right = deleteNode(root->right, temp->key);
+        }
+        }
+        */
+        // printf("equal nodes : %d\n",key);
+        // count_repeat++;
+        return node;
+ 
+    /* 2. Update height of this ancestor node */
+    node->height = 1 + max(height(node->left),
+                           height(node->right));
+ 
+    /* 3. Get the balance factor of this ancestor
+          node to check whether this node became
+          unbalanced */
+    int balance = getBalance(node);
+ 
+    // If this node becomes unbalanced, then
+    // there are 4 cases
+ 
+    // Left Left Case
+    if (balance > 1 && key < node->left->key)
+        return rightRotate(node);
+ 
+    // Right Right Case
+    if (balance < -1 && key > node->right->key)
+        return leftRotate(node);
+ 
+    // Left Right Case
+    if (balance > 1 && key > node->left->key)
+    {
+        node->left =  leftRotate(node->left);
+        return rightRotate(node);
     }
-  }
-
-  if (root == NULL)
-    return root;
-
-  // Update the balance factor of each node and
-  // balance the tree
-  root->height = 1 + max(height(root->left),
-               height(root->right));
-
-  int balance = getBalance(root);
-  if (balance > 1 && getBalance(root->left) >= 0)
-    return rightRotate(root);
-
-  if (balance > 1 && getBalance(root->left) < 0) {
-    root->left = leftRotate(root->left);
-    return rightRotate(root);
-  }
-
-  if (balance < -1 && getBalance(root->right) <= 0)
-    return leftRotate(root);
-
-  if (balance < -1 && getBalance(root->right) > 0) {
-    root->right = rightRotate(root->right);
-    return leftRotate(root);
-  }
-
-  return root;
+ 
+    // Right Left Case
+    if (balance < -1 && key < node->right->key)
+    {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+ 
+    /* return the (unchanged) node pointer */
+    return node;
 }
 
-bool search(int val,struct Node *head){
+int search(unsigned int val,struct Node *head){
     if( head ==NULL){
         return 0;
     }
@@ -203,7 +179,7 @@ void disp_map(struct Node *head){
     return;
   }
   disp_map(head->left);
-  printf("%d \t",head->key);
+  printf("%lu \t",head->key);
   disp_map(head->left);
   printf("\n");
 
@@ -214,11 +190,23 @@ void print_inorder(struct Node * tree)
     if (tree)
     {
         print_inorder(tree->left);
-        printf("%d\n",tree->key);
+        printf("%lu\n",tree->key);
         print_inorder(tree->right);
     }
 }
 
+int count_nodes(struct Node *tree)
+{
+    int c =  1;             //Node itself should be counted
+    if (tree ==NULL)
+        return 0;
+    else
+    {
+        c += count_nodes(tree->left);
+        c += count_nodes(tree->right);
+        return c;
+    }
+}
 
 
 /*int main(){
