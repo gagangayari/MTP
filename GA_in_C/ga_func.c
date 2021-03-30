@@ -126,22 +126,28 @@ double get_error(){
 
         
     }
-    // printf("after %lf \n",sqrt(norm));
+    printf("after %lf \n",sqrt(norm));
     return sqrt(norm);
 
 }
 
-/* Calculates the fitness value for each samples*/
-struct Node *fitness(struct chrom samples[],int n,struct Node *map){
-    // printf("Before \n");
 
+void* fitness_parallel(void* argsss){
+
+    struct args *args1=(struct args*) argsss;
+    struct chrom *samples=args1->sample;
+    struct Node *map=args1->node;
+    int start= args1->start;
+    int end=args1->end;
     double err;
     int k;
-    for(int i=0;i<n;i++){
+    for(int i=start;i<end;i++){
+        run_main_adpcm(samples[i].key);
+        printf("Id %d\n",i);
+        disp_1d(samples[i].key,key_size);
 
-        run_main_adpcm(samples[i].key);  //curr_output will be modified
-
-        err =get_error();
+        err=get_error();
+        printf("error %lf\n",err);
         if(err ==0){
             found_flag =1;
             printf("Found exact Key\n");
@@ -151,7 +157,42 @@ struct Node *fitness(struct chrom samples[],int n,struct Node *map){
         samples[i].fitness =1/err;
         
         k=bin2int(samples[i].key,key_size);
-        // printf("%d ",i);
+        // printf("here %lu\n",k);
+        sleep(1);
+
+        map=insert(map,k);
+
+    }
+    return NULL;
+
+
+}
+
+
+/* Calculates the fitness value for each samples*/
+struct Node *fitness(struct chrom samples[],int n,struct Node *map){
+
+    
+
+    double err;
+    int k;
+    for(int i=0;i<n;i++){
+
+        run_main_adpcm();  //curr_output will be modified
+
+
+        err =get_error();
+        printf("at normal fitness.error %lf\n",err);
+
+        if(err ==0){
+            found_flag =1;
+            printf("Found exact Key\n");
+            break;
+        }
+        samples[i].error=err;
+        samples[i].fitness =1/err;
+        
+        k=bin2int(samples[i].key,key_size);
         map=insert(map,k);
 
 
