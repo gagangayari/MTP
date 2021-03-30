@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<math.h>
+// #include "hash_map.c"
 #include "ga.h"
 #include "adpcm_operation.c"
 
@@ -52,15 +53,18 @@ int power(int val,int n){
         res=res*val;
 
     }
+    return res;
 }
 
-int bin2int(int arr[],int n){
-    int res=0;
+unsigned int bin2int(int arr[],int n){
+    unsigned int res=0,count=0;
+
     for(int i=n-1;i>=0;i--){
         res += (arr[i]* power(2,n-1-i));
-        // printf("%d ",arr[i]);
-
+        // printf("%d",arr[n-1-i]);
+        count++;
     }
+    // printf(" \nInt is %lu .Count : %d\n : ",res,count);
     return res;
 
 }
@@ -128,12 +132,12 @@ double get_error(){
 }
 
 /* Calculates the fitness value for each samples*/
-void fitness(struct chrom samples[],int n){
+struct Node *fitness(struct chrom samples[],int n,struct Node *map){
     // printf("Before \n");
 
     double err;
+    int k;
     for(int i=0;i<n;i++){
-        // printf("Ran  \n");
 
         run_main_adpcm(samples[i].key);  //curr_output will be modified
 
@@ -141,14 +145,36 @@ void fitness(struct chrom samples[],int n){
         if(err ==0){
             found_flag =1;
             printf("Found exact Key\n");
-            // break;
+            break;
         }
         samples[i].error=err;
         samples[i].fitness =1/err;
+        
+        k=bin2int(samples[i].key,key_size);
+        // printf("%d ",i);
+        map=insert(map,k);
+
 
     }
-
+    // printf("Elements in fitness hashmap : %d\n",count_nodes(map));
+    return map;
+    
 }
+
+/*** ########### Delay ############ */
+
+void delay(int number_of_seconds) 
+{ 
+    // Converting time into milli_seconds 
+    int milli_seconds = 1000 * number_of_seconds; 
+  
+    // Storing start time 
+    clock_t start_time = clock(); 
+  
+    // looping till required time is not achieved 
+    while (clock() < start_time + milli_seconds) 
+        ; 
+} 
 
 
 /* ################## Initialize a chromosome #################### */
@@ -157,9 +183,12 @@ void fitness(struct chrom samples[],int n){
 /* Initialize a random array */
 
 void init(int *chromosome ){
-    srand(time(NULL));
+    // srand(time(NULL));
+    // delay(1);
+    int n;
     for(int i=0;i<key_size;i++){
-        chromosome[i]= rand() %2;
+        n=rand()%2;
+        chromosome[i]= n;
 
     }
     
@@ -168,6 +197,7 @@ void init(int *chromosome ){
 
 
 void init_chrom(int n,struct chrom *samples){
+    // srand(time(NULL));
     for(int i=0;i<n;i++){
         samples[i].fitness= -1;
         samples[i].error=-1;
@@ -184,11 +214,16 @@ void init_chrom(int n,struct chrom *samples){
 void mutation (struct chrom *sample,struct chrom *child){
     //Takes a single sample ,mutates it and store it in child
     init_chrom(1,child);
-    srand(time(NULL));
-    
+    // srand(time(NULL));
+    // printf("Before \n");
+    // disp_chrom_key(sample,1);
     for(int i=0;i<key_size;i++){
+
         child->key[i]=sample->key[i];
-        if(rand()/(double) RAND_MAX < mut_prob){
+
+        if((rand()/(double) RAND_MAX) < mut_prob){
+            // printf("here %d\n",i);
+
             if(sample->key[i] == 0 ){
                 child->key[i]=1;
             }
@@ -196,7 +231,12 @@ void mutation (struct chrom *sample,struct chrom *child){
                 child->key[i]=0;
             }
         }
+        
     }
+    // printf("After \n");
+
+    
+    // disp_chrom_key(child,1);
     
 
 }
@@ -261,13 +301,29 @@ void generate_random_indexes(int arr[],int n){
     int index;
     int i=0;
     while(n!=0){    
-        srand(time(NULL));
+        // srand(time(NULL));
         index=rand() %n;
         swap(&arr[index],&arr[n-1]);
         n--;
     }
 }
+void uniform_crossover(struct chrom* parent1,struct chrom* parent2,struct chrom* child1,struct chrom* child2){
+    // srand(time(NULL));
+    // printf("inside \n");
+    // disp_1d(parent1->key,32);
+    for(int i=0;i<key_size;i++){
+        if(rand() %2 ==1){
+            child1->key[i]=parent2->key[i];
+            child2->key[i]=parent1->key[i];
 
+        }
+        else{
+            child1->key[i]=parent1->key[i];
+            child2->key[i]=parent2->key[i];
+
+        }
+    }
+}
 
 void multipoint_crossover(int n,struct chrom *mate1,struct chrom *mate2, struct chrom *child1, struct chrom *child2){
     //n is the number of crossover points
@@ -353,7 +409,7 @@ struct chrom* crossover(struct chrom *mate1,struct chrom *mate2,struct chrom* ch
 
 /* ################## Parent selection ###############*/
 
-//We select 10 random samples and pick the two fittest samples
+//if the element index is already present in the array picked_arr 
 int check_if_not_picked(int picked_arr[],int index,int n){
     for(int i=0;i<n;i++){
         if(picked_arr[i]==index){
@@ -366,8 +422,8 @@ int check_if_not_picked(int picked_arr[],int index,int n){
 
 /* Choose the fittest sample from an array of samples8*/
 int pick_best(struct chrom samples[],int arr[],int n){
-    struct chrom fittest_sample=samples[0];
-    int index=0;
+    struct chrom fittest_sample=samples[arr[0]];
+    int index=arr[0];
     for(int i=0;i<n;i++){
         if(fittest_sample.fitness < samples[arr[i]].fitness){
             fittest_sample=samples[arr[i]];
@@ -389,20 +445,21 @@ void initializer(int arr[],int n){
 
 }
 
-struct custom_struct selection (struct chrom samples[],int n){//n is the size of the samples array
-    int n_sample=2;
+struct custom_struct selection (struct chrom samples[],int n,struct custom_struct parents){//n is the size of the samples array
+    int n_sample=10;
     int first_set[n_sample],second_set[n_sample];
     
     //Initialise array values to -1
     initializer(first_set,n_sample);
     initializer(second_set,n_sample);
-    srand(time(NULL));
-
+    // srand(time(NULL));
     int count1=0,count2=0,i=0,j=0,index;
+
     //generate  10 random indexes
-    while (count1!=10 ){
-       index= rand()%n;
+    while (count1!=n_sample ){
+       index= rand()% n;
     //    printf("Debugging1 %d\n",index);
+
        if( check_if_not_picked(first_set,index,n_sample) ){
         //    printf("Not picked1 %d\n",index);
 
@@ -412,10 +469,11 @@ struct custom_struct selection (struct chrom samples[],int n){//n is the size of
        }
 
     }
+    // disp_1d(first_set,n_sample);
     int parent1=pick_best(samples,first_set,n_sample);
     // disp_chrom_data()
-    // printf("\n");
-    while (count2!=10 ){
+    // printf("\nbest pick %d\n",parent1);
+    while (count2 != n_sample ){
        index= rand()%n;
     //    printf("Debugging2 %d\n",index);
 
@@ -428,10 +486,10 @@ struct custom_struct selection (struct chrom samples[],int n){//n is the size of
        }
 
     }
+    // disp_1d(second_set,n_sample);
 
     int parent2=pick_best(samples,second_set,n_sample);
 
-    struct custom_struct parents;
     parents.first= parent1;
     parents.second= parent2;
 
@@ -458,7 +516,7 @@ void bsort_samples(struct chrom *samples,int n){
     struct chrom temp;
     for(int i=0;i<n-1;i++){
         for(int j=0;j<n-i-1;j++){
-            if(samples[j].fitness>samples[j+1].fitness){
+            if(samples[j].error>samples[j+1].error){
                 temp =samples[j+1];
                 samples[j+1]=samples[j];
                 samples[j]=temp;
@@ -466,6 +524,130 @@ void bsort_samples(struct chrom *samples,int n){
             }
         }
     }
+
+
+}
+
+/* ######### comparator ##########*/
+//comparator function for qsort
+int comparator(const void *p, const void *q)
+{
+	double l = ((struct chrom *)p)->error;
+	double r = ((struct chrom *)q)->error;
+    if(l-r<0){
+        return -1;
+    }
+    else if(l-r>0){
+        return 1;
+
+
+    }
+    else{
+        return 0;
+    }
+}
+
+
+void bit_flipper(int arr[],int indexes[],int n){
+    //Flip the bits 0 -> 1 and 1->0  in array :-> arr, at indices :-> indexes
+
+    for(int i=0;i<n;i++){
+        if(arr[indexes[i]]==0){
+            arr[indexes[i]]=1;
+        }
+        else{
+            arr[indexes[i]]=0;
+        }
+    }
+}
+
+/* ############# Random index generator ######## */
+
+/* l : lower index.  u : upper index.  n : number of indexes to be generated*/
+void random_index(int picked_arr[],int l,int u,int n){
+    //consider l to be 0
+    srand(time(NULL));
+
+   if( u-l +1 <n){
+       printf( "\nIndex generation not possible....\n");
+       return;
+   }
+   else{
+       int i;
+       int j=0;
+       while(n!=0){
+           i=rand() % u ;
+           if(check_if_not_picked(picked_arr,i,n)){
+               picked_arr[j++]=i;
+               n--;
+           }
+       }
+
+   }
+}
+
+/* ############# Introduce variation ########## */
+void variation(struct chrom *samples,int n,struct Node *hash_map){
+    
+    int picked[key_size/2];
+    initializer(picked,key_size/2);
+    // printf("Init\n");
+    // disp_1d(picked,key_size/2);
+    for(int i=n/2;i<n;i++){ //vary the last 50% keys
+        // printf("\nbefore %d\n",i);
+
+        // disp_1d(samples[i].key,32);
+
+
+        random_index(picked,0,key_size,key_size/2);
+    
+        bit_flipper(samples[i].key,picked,key_size/2);
+        n=bin2int(samples[i].key,key_size);
+    
+        while( search(n,hash_map)){
+            random_index(picked,0,key_size,key_size/2);
+            bit_flipper(samples[i].key,picked,key_size/2);
+            n=bin2int(samples[i].key,key_size);
+
+            
+        }
+
+    
+
+
+
+    }
+
+}
+
+/* ############### Mutation with varying Probability ############### */
+
+void mutate_prob(struct chrom *samples,int n,int  count[]){
+    int max=0; //index of the maximum error
+    double max_error =0,sum=0;
+    double total_error=0;
+    double prob[max_offsprings];
+    for(int i=0;i<n;i++){
+        total_error += samples[i].error;
+        if(samples[i].error>max_error){
+            max_error=samples[i].error;
+            max=i;
+        }
+    }
+    
+    sum=0;
+    for( int i=0;i<n;i++){
+        prob[i]=(max_error-samples[i].error);
+        sum +=prob[i];
+    }
+    
+    for( int i=0;i<n;i++){
+        prob[i] = prob[i]/sum;
+        count [i]=(int) round(prob[i]*n);
+        // printf("%lf ",round(prob[i]*n));
+    }
+
+   
 
 
 }
