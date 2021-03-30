@@ -3,19 +3,22 @@
 
 #include<time.h>
 #include "hash_map.c"
+#include<windows.h>
+
+
 #define output_rows 1000
 #define output_cols 100
 
-#define mut_prob 0.3
+#define mut_prob 0.2
 #define xover_prob 0.3
 
 #define key_size 32
-#define max_offsprings 10
-#define init_pop 10
-#define max_itr 5
+#define max_offsprings 400
+#define init_pop 400
+#define max_itr 2000
 
-
-
+int vary_flag=0;
+int count_repeat;
 int found_flag;
 int offsprings_count=0;
 int actual_output[output_rows][output_cols];
