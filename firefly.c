@@ -63,7 +63,7 @@ void normalize(int arr[],int n,int n_const,double res[]){
 
     }
 }
-/*
+
 //For waka1 
 void firefly(struct chrom *pop,int n,int max_itr,int n_consts){
     // for(int i=0;i<n;i++){
@@ -110,7 +110,7 @@ void firefly(struct chrom *pop,int n,int max_itr,int n_consts){
 
     }
     
-}*/
+}
 
 int main(){
     double res[3];
