@@ -1,0 +1,12 @@
+Report Generated on Sun Sep 15 13:46:44 2019
+Number of Inputs = 11
+Number of Outputs = 4
+Number of Keys = 36
+Number of Boolean Keys = 35
+Number of Integer Keys = 1
+Key Size = 67 Bit
+No of iteration = 2
+total instructions = 6863
+completed paths = 8
+Time = 406.966 Sec
+RAM Used = 576 MB
